@@ -31,7 +31,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onPortfolioData }) => {
     }
   };
 
-  const readExcelFile = (file: File): Promise<any[]> => {
+  const readExcelFile = (file: File): Promise<unknown[][]> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       
@@ -42,7 +42,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onPortfolioData }) => {
           const sheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[sheetName];
           const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-          resolve(jsonData);
+          resolve(jsonData as unknown[][]);
         } catch (error) {
           reject(error);
         }
@@ -53,7 +53,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onPortfolioData }) => {
     });
   };
 
-  const convertToPortfolioData = (excelData: any[]): StockHolding[] => {
+  const convertToPortfolioData = (excelData: unknown[][]): StockHolding[] => {
     const holdings: StockHolding[] = [];
     
     // Skip header row and process data rows
@@ -74,17 +74,17 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onPortfolioData }) => {
         const holding: StockHolding = {
           id: `imported-${i}`,
           particulars: String(row[1] || ''), // Stock Name
-          purchasePrice: parseFloat(row[2]) || 0, // Purchase Price
-          quantity: parseInt(row[3]) || 0, // Quantity
-          investment: parseFloat(row[4]) || 0, // Investment
+          purchasePrice: parseFloat(String(row[2])) || 0, // Purchase Price
+          quantity: parseInt(String(row[3])) || 0, // Quantity
+          investment: parseFloat(String(row[4])) || 0, // Investment
           portfolioPercentage: 0, // Will be calculated
           exchange: String(row[5] || 'NSE'), // NSE/BSE
           sector: String(row[6] || 'Others'), // Sector
-          cmp: parseFloat(row[7]) || 0, // CMP
-          presentValue: parseFloat(row[8]) || 0, // Present Value
-          gainLoss: parseFloat(row[9]) || 0, // Gain/Loss
-          peRatio: parseFloat(row[10]) || 0, // P/E Ratio
-          latestEarnings: parseFloat(row[11]) || 0, // Latest Earnings
+          cmp: parseFloat(String(row[7])) || 0, // CMP
+          presentValue: parseFloat(String(row[8])) || 0, // Present Value
+          gainLoss: parseFloat(String(row[9])) || 0, // Gain/Loss
+          peRatio: parseFloat(String(row[10])) || 0, // P/E Ratio
+          latestEarnings: parseFloat(String(row[11])) || 0, // Latest Earnings
           lastUpdated: new Date()
         };
 
