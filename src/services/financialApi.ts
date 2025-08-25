@@ -50,7 +50,7 @@ const delay = (ms: number): Promise<void> =>
   new Promise(resolve => setTimeout(resolve, ms));
 
 // Server-side API call using Next.js API route
-const fetchFromServer = async (symbol: string, type?: string): Promise<any> => {
+const fetchFromServer = async (symbol: string, type?: string): Promise<ApiResponse<FinancialData>> => {
   const params = new URLSearchParams({ symbol });
   if (type) {
     params.append('type', type);
@@ -62,7 +62,7 @@ const fetchFromServer = async (symbol: string, type?: string): Promise<any> => {
     throw new Error(`Server API returned ${response.status}: ${response.statusText}`);
   }
   
-  return await response.json();
+  	return await response.json();
 };
 
 // Yahoo Finance API using server-side route

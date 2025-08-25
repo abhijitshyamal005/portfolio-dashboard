@@ -232,7 +232,7 @@ export const PortfolioDashboard: React.FC = () => {
         {/* Footer Info */}
         <div className="mt-12 text-center text-sm text-gray-500 dark:text-gray-400">
           <p className="mb-2">
-            Data is fetched manually when you click "Fetch Data Now" • {portfolioData.holdings.length} holdings loaded
+            Data is fetched manually when you click &quot;Fetch Data Now&quot; • {portfolioData.holdings.length} holdings loaded
           </p>
           <p className="text-xs mb-2">
             <strong>Data Sources:</strong> Yahoo Finance (CMP), Google Finance (P/E Ratio & Earnings)
