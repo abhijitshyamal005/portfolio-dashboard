@@ -117,3 +117,4 @@ Data format: Normalized JSON between server and client.
 - `src/components/SectorSummary.tsx` — Sector-level summaries
 - `src/config/env.ts` — Configurable environment values and defaults
 
+

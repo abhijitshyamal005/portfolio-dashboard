@@ -74,7 +74,8 @@ export async function GET(request: NextRequest) {
       // Fetch Yahoo Finance data
       try {
         // Try multiple symbol variants for robustness
-        let quote: any | null = null;
+        type QuoteLike = { regularMarketPrice?: number; trailingPE?: number; epsTrailingTwelveMonths?: number };
+        let quote: QuoteLike | null = null;
         for (const candidate of yahooCandidates) {
           try {
             quote = await yahooFinance.quote(candidate);
