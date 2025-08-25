@@ -13,6 +13,8 @@ export interface StockHolding {
   peRatio: number; // P/E Ratio from Google Finance
   latestEarnings: number; // Latest Earnings from Google Finance
   lastUpdated: Date;
+  marketCap?: number; // Market Cap (optional)
+  flagged?: boolean; // For special highlight (optional)
 }
 
 export interface SectorSummary {

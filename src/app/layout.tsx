@@ -27,6 +27,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        {/* Global Disclaimer */}
+        <div className="w-full bg-yellow-100 dark:bg-yellow-900 text-yellow-900 dark:text-yellow-200 text-center py-2 px-4 text-xs font-semibold border-b border-yellow-300 dark:border-yellow-800">
+          <span className="font-bold">Disclaimer:</span> This dashboard uses unofficial APIs and web scraping for financial data. Data may be delayed or inaccurate. Do not use for trading decisions. Always verify with official sources.
+        </div>
         {children}
       </body>
     </html>
