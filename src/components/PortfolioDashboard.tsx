@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { PortfolioOverview } from './PortfolioOverview';
 import { PortfolioTable } from './PortfolioTable';
+import { PortfolioOverview } from './PortfolioOverview';
 import { SectorSummaryComponent } from './SectorSummary';
 import { FileUpload } from './FileUpload';
 import { portfolioService } from '@/services/portfolioService';
-import { PortfolioData, StockHolding } from '@/types/portfolio';
+import { StockHolding, PortfolioData } from '@/types/portfolio';
 
 export const PortfolioDashboard: React.FC = () => {
   const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
@@ -14,6 +14,7 @@ export const PortfolioDashboard: React.FC = () => {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showFileUpload, setShowFileUpload] = useState(false);
+  const [updateStatus, setUpdateStatus] = useState<string>('Initializing...');
 
   // Fetch portfolio data
   const fetchPortfolioData = useCallback(async () => {
@@ -21,7 +22,7 @@ export const PortfolioDashboard: React.FC = () => {
       setError(null);
       const data = portfolioService.getPortfolioData();
       setPortfolioData(data);
-      setLastUpdated(new Date());
+      setLastUpdated(portfolioService.getLastUpdateTime() || new Date());
     } catch (err) {
       setError('Failed to fetch portfolio data');
       console.error('Error fetching portfolio data:', err);
@@ -33,10 +34,16 @@ export const PortfolioDashboard: React.FC = () => {
     try {
       setIsLoading(true);
       setError(null);
-      await portfolioService.updateFinancialData();
+      setUpdateStatus('Fetching real-time data from Yahoo Finance & Google Finance...');
+      
+      await portfolioService.fetchDataNow();
       await fetchPortfolioData();
+      
+      setUpdateStatus('Data updated successfully');
+      setTimeout(() => setUpdateStatus(''), 3000); // Clear status after 3 seconds
     } catch (err) {
       setError('Failed to update financial data');
+      setUpdateStatus('Update failed');
       console.error('Error updating financial data:', err);
     } finally {
       setIsLoading(false);
@@ -46,12 +53,16 @@ export const PortfolioDashboard: React.FC = () => {
   // Handle imported portfolio data
   const handleImportedPortfolio = useCallback((holdings: StockHolding[]) => {
     try {
+      setUpdateStatus('Importing portfolio data...');
       portfolioService.updatePortfolioWithImportedData(holdings);
       fetchPortfolioData();
       setShowFileUpload(false);
       setError(null);
+      setUpdateStatus('Portfolio imported successfully');
+      setTimeout(() => setUpdateStatus(''), 3000);
     } catch (err) {
       setError('Failed to import portfolio data');
+      setUpdateStatus('Import failed');
       console.error('Error importing portfolio:', err);
     }
   }, [fetchPortfolioData]);
@@ -59,26 +70,22 @@ export const PortfolioDashboard: React.FC = () => {
   // Reset to sample data
   const handleResetToSample = useCallback(() => {
     try {
+      setUpdateStatus('Resetting to sample data...');
       portfolioService.resetToSampleData();
       fetchPortfolioData();
       setError(null);
+      setUpdateStatus('Reset to sample data completed');
+      setTimeout(() => setUpdateStatus(''), 3000);
     } catch (err) {
       setError('Failed to reset portfolio data');
+      setUpdateStatus('Reset failed');
       console.error('Error resetting portfolio:', err);
     }
   }, [fetchPortfolioData]);
 
-  // Initialize portfolio and start auto-updates
+  // Initialize portfolio
   useEffect(() => {
     fetchPortfolioData();
-    
-    // Start automatic updates every 15 seconds
-    portfolioService.startAutoUpdates(15000);
-    
-    // Cleanup on unmount
-    return () => {
-      portfolioService.stopAutoUpdates();
-    };
   }, [fetchPortfolioData]);
 
   // Manual refresh handler
@@ -106,7 +113,7 @@ export const PortfolioDashboard: React.FC = () => {
             Portfolio Dashboard
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Real-time portfolio tracking with live market data
+            Real-time portfolio tracking with live market data from Yahoo Finance & Google Finance
           </p>
           {lastUpdated && (
             <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
@@ -114,6 +121,24 @@ export const PortfolioDashboard: React.FC = () => {
             </p>
           )}
         </div>
+
+        {/* Status Bar */}
+        {updateStatus && (
+          <div className="mb-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                  {updateStatus}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Action Buttons */}
         <div className="mb-6 flex flex-wrap gap-4">
@@ -135,6 +160,29 @@ export const PortfolioDashboard: React.FC = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
             Reset to Sample Data
+          </button>
+
+          <button
+            onClick={handleRefresh}
+            disabled={isLoading || portfolioService.isUpdateInProgress()}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading || portfolioService.isUpdateInProgress() ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Updating...
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Fetch Data Now
+              </>
+            )}
           </button>
         </div>
 
@@ -172,7 +220,7 @@ export const PortfolioDashboard: React.FC = () => {
           <PortfolioTable
             holdings={portfolioData.holdings}
             onRefresh={handleRefresh}
-            isLoading={isLoading}
+            isLoading={isLoading || portfolioService.isUpdateInProgress()}
           />
         </div>
 
@@ -184,10 +232,13 @@ export const PortfolioDashboard: React.FC = () => {
         {/* Footer Info */}
         <div className="mt-12 text-center text-sm text-gray-500 dark:text-gray-400">
           <p className="mb-2">
-            Data updates automatically every 15 seconds • {portfolioData.holdings.length} holdings loaded
+            Data is fetched manually when you click "Fetch Data Now" • {portfolioData.holdings.length} holdings loaded
+          </p>
+          <p className="text-xs mb-2">
+            <strong>Data Sources:</strong> Yahoo Finance (CMP), Google Finance (P/E Ratio & Earnings)
           </p>
           <p className="text-xs">
-            Note: This is a demonstration using mock data. In production, real-time data would be fetched from financial APIs.
+            Note: Using unofficial APIs and web scraping. Data accuracy depends on source availability.
           </p>
         </div>
       </div>

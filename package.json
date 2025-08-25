@@ -12,12 +12,15 @@
     "@tanstack/react-table": "^8.21.3",
     "@types/recharts": "^1.8.29",
     "axios": "^1.11.0",
+    "cheerio": "^1.1.2",
     "date-fns": "^4.1.0",
     "next": "15.5.0",
+    "puppeteer": "^24.17.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "recharts": "^3.1.2",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "yahoo-finance2": "^2.13.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

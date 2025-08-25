@@ -1,289 +1,358 @@
-import { StockHolding, PortfolioData, SectorSummary } from '@/types/portfolio';
-import { fetchFinancialData } from './financialApi';
+import { StockHolding, SectorSummary, PortfolioData } from '@/types/portfolio';
+import { fetchBatchFinancialData, rateLimitedFetchFinancialData } from '@/services/financialApi';
 
-// Sample portfolio data - in a real app, this would come from a database
+// Sample portfolio data
 const SAMPLE_PORTFOLIO: StockHolding[] = [
   {
     id: '1',
-    particulars: 'RELIANCE',
-    purchasePrice: 2400.00,
+    particulars: 'TCS',
+    purchasePrice: 3200,
     quantity: 100,
-    investment: 240000.00,
-    portfolioPercentage: 0,
+    investment: 320000,
+    portfolioPercentage: 25.0,
     exchange: 'NSE',
-    sector: 'Oil & Gas',
-    cmp: 2450.75,
-    presentValue: 245075.00,
-    gainLoss: 5075.00,
-    peRatio: 18.5,
-    latestEarnings: 125.50,
+    cmp: 0, // Will be fetched from API
+    presentValue: 0, // Will be calculated
+    gainLoss: 0, // Will be calculated
+    peRatio: 0, // Will be fetched from API
+    latestEarnings: 0, // Will be fetched from API
+    sector: 'Technology',
     lastUpdated: new Date()
   },
   {
     id: '2',
-    particulars: 'TCS',
-    purchasePrice: 3800.00,
+    particulars: 'RELIANCE',
+    purchasePrice: 2400,
     quantity: 50,
-    investment: 190000.00,
-    portfolioPercentage: 0,
+    investment: 120000,
+    portfolioPercentage: 9.4,
     exchange: 'NSE',
-    sector: 'Technology',
-    cmp: 3850.25,
-    presentValue: 192512.50,
-    gainLoss: 2512.50,
-    peRatio: 25.2,
-    latestEarnings: 95.75,
+    cmp: 0,
+    presentValue: 0,
+    gainLoss: 0,
+    peRatio: 0,
+    latestEarnings: 0,
+    sector: 'Oil & Gas',
     lastUpdated: new Date()
   },
   {
     id: '3',
     particulars: 'INFY',
-    purchasePrice: 1400.00,
-    quantity: 75,
-    investment: 105000.00,
-    portfolioPercentage: 0,
+    purchasePrice: 1400,
+    quantity: 150,
+    investment: 210000,
+    portfolioPercentage: 16.4,
     exchange: 'NSE',
+    cmp: 0,
+    presentValue: 0,
+    gainLoss: 0,
+    peRatio: 0,
+    latestEarnings: 0,
     sector: 'Technology',
-    cmp: 1450.50,
-    presentValue: 108787.50,
-    gainLoss: 3787.50,
-    peRatio: 22.8,
-    latestEarnings: 78.25,
     lastUpdated: new Date()
   },
   {
     id: '4',
     particulars: 'HDFC',
-    purchasePrice: 1600.00,
-    quantity: 60,
-    investment: 96000.00,
-    portfolioPercentage: 0,
+    purchasePrice: 1600,
+    quantity: 80,
+    investment: 128000,
+    portfolioPercentage: 10.0,
     exchange: 'NSE',
-    sector: 'Financial Services',
-    cmp: 1650.00,
-    presentValue: 99000.00,
-    gainLoss: 3000.00,
-    peRatio: 19.8,
-    latestEarnings: 112.50,
+    cmp: 0,
+    presentValue: 0,
+    gainLoss: 0,
+    peRatio: 0,
+    latestEarnings: 0,
+    sector: 'Banking & Financial',
     lastUpdated: new Date()
   },
   {
     id: '5',
     particulars: 'ICICIBANK',
-    purchasePrice: 900.00,
-    quantity: 100,
-    investment: 90000.00,
-    portfolioPercentage: 0,
+    purchasePrice: 900,
+    quantity: 120,
+    investment: 108000,
+    portfolioPercentage: 8.4,
     exchange: 'NSE',
-    sector: 'Financial Services',
-    cmp: 950.75,
-    presentValue: 95075.00,
-    gainLoss: 5075.00,
-    peRatio: 16.5,
-    latestEarnings: 68.75,
+    cmp: 0,
+    presentValue: 0,
+    gainLoss: 0,
+    peRatio: 0,
+    latestEarnings: 0,
+    sector: 'Banking & Financial',
     lastUpdated: new Date()
   },
   {
     id: '6',
-    particulars: 'WIPRO',
-    purchasePrice: 440.00,
+    particulars: 'TATAMOTORS',
+    purchasePrice: 700,
     quantity: 200,
-    investment: 88000.00,
-    portfolioPercentage: 0,
+    investment: 140000,
+    portfolioPercentage: 10.9,
     exchange: 'NSE',
-    sector: 'Technology',
-    cmp: 450.25,
-    presentValue: 90050.00,
-    gainLoss: 2050.00,
-    peRatio: 20.1,
-    latestEarnings: 45.50,
+    cmp: 0,
+    presentValue: 0,
+    gainLoss: 0,
+    peRatio: 0,
+    latestEarnings: 0,
+    sector: 'Automobile',
     lastUpdated: new Date()
   },
   {
     id: '7',
-    particulars: 'TATAMOTORS',
-    purchasePrice: 720.00,
-    quantity: 120,
-    investment: 86400.00,
-    portfolioPercentage: 0,
+    particulars: 'AXISBANK',
+    purchasePrice: 800,
+    quantity: 100,
+    investment: 80000,
+    portfolioPercentage: 6.3,
     exchange: 'NSE',
-    sector: 'Automobile',
-    cmp: 750.50,
-    presentValue: 90060.00,
-    gainLoss: 3660.00,
-    peRatio: 28.5,
-    latestEarnings: 35.25,
+    cmp: 0,
+    presentValue: 0,
+    gainLoss: 0,
+    peRatio: 0,
+    latestEarnings: 0,
+    sector: 'Banking & Financial',
     lastUpdated: new Date()
   },
   {
     id: '8',
-    particulars: 'AXISBANK',
-    purchasePrice: 820.00,
-    quantity: 100,
-    investment: 82000.00,
-    portfolioPercentage: 0,
+    particulars: 'WIPRO',
+    purchasePrice: 400,
+    quantity: 300,
+    investment: 120000,
+    portfolioPercentage: 9.4,
     exchange: 'NSE',
-    sector: 'Financial Services',
-    cmp: 850.00,
-    presentValue: 85000.00,
-    gainLoss: 3000.00,
-    peRatio: 17.2,
-    latestEarnings: 58.90,
+    cmp: 0,
+    presentValue: 0,
+    gainLoss: 0,
+    peRatio: 0,
+    latestEarnings: 0,
+    sector: 'Technology',
     lastUpdated: new Date()
   }
 ];
 
-export class PortfolioService {
-  private holdings: StockHolding[] = [...SAMPLE_PORTFOLIO];
-  private updateInterval: NodeJS.Timeout | null = null;
+class PortfolioService {
+  private portfolio: StockHolding[] = [...SAMPLE_PORTFOLIO];
+  private lastUpdateTime: Date | null = null;
+  private updateInProgress: boolean = false;
 
-  constructor() {
-    this.calculatePortfolioPercentages();
+  // Get current portfolio
+  getPortfolio(): StockHolding[] {
+    return [...this.portfolio];
   }
 
-  // Calculate portfolio percentages based on investment amounts
-  private calculatePortfolioPercentages(): void {
-    const totalInvestment = this.holdings.reduce((sum, holding) => sum + holding.investment, 0);
-    
-    this.holdings.forEach(holding => {
-      holding.portfolioPercentage = (holding.investment / totalInvestment) * 100;
-    });
-  }
-
-  // Update portfolio with imported data
-  updatePortfolioWithImportedData(importedHoldings: StockHolding[]): void {
-    this.holdings = [...importedHoldings];
-    this.calculatePortfolioPercentages();
-  }
-
-  // Reset to sample data
-  resetToSampleData(): void {
-    this.holdings = [...SAMPLE_PORTFOLIO];
-    this.calculatePortfolioPercentages();
-  }
-
-  // Update financial data for all holdings
-  async updateFinancialData(): Promise<void> {
-    const updatePromises = this.holdings.map(async (holding) => {
-      try {
-        const financialData = await fetchFinancialData(holding.particulars);
-        
-        if (financialData.success && financialData.data) {
-          holding.cmp = financialData.data.cmp;
-          holding.peRatio = financialData.data.peRatio;
-          holding.latestEarnings = financialData.data.latestEarnings;
-          holding.presentValue = holding.cmp * holding.quantity;
-          holding.gainLoss = holding.presentValue - holding.investment;
-          holding.lastUpdated = financialData.data.lastUpdated;
-        }
-      } catch (error) {
-        console.error(`Failed to update data for ${holding.particulars}:`, error);
-      }
-    });
-
-    await Promise.all(updatePromises);
-  }
-
-  // Get current portfolio data
+  // Get portfolio data with calculations
   getPortfolioData(): PortfolioData {
-    const totalInvestment = this.holdings.reduce((sum, holding) => sum + holding.investment, 0);
-    const totalPresentValue = this.holdings.reduce((sum, holding) => sum + holding.presentValue, 0);
+    const totalInvestment = this.portfolio.reduce((sum, holding) => sum + holding.investment, 0);
+    const totalPresentValue = this.portfolio.reduce((sum, holding) => sum + holding.presentValue, 0);
     const totalGainLoss = totalPresentValue - totalInvestment;
-    const totalGainLossPercentage = (totalInvestment > 0) ? (totalGainLoss / totalInvestment) * 100 : 0;
-
-    // Group by sector
-    const sectorMap = new Map<string, SectorSummary>();
-    
-    this.holdings.forEach(holding => {
-      if (!sectorMap.has(holding.sector)) {
-        sectorMap.set(holding.sector, {
-          sector: holding.sector,
-          totalInvestment: 0,
-          totalPresentValue: 0,
-          totalGainLoss: 0,
-          stockCount: 0
-        });
-      }
-      
-      const sectorSummary = sectorMap.get(holding.sector)!;
-      sectorSummary.totalInvestment += holding.investment;
-      sectorSummary.totalPresentValue += holding.presentValue;
-      sectorSummary.totalGainLoss += holding.gainLoss;
-      sectorSummary.stockCount += 1;
-    });
-
-    const sectorSummaries = Array.from(sectorMap.values());
+    const totalReturnPercentage = totalInvestment > 0 ? (totalGainLoss / totalInvestment) * 100 : 0;
 
     return {
-      holdings: [...this.holdings],
-      sectorSummaries,
+      holdings: this.portfolio,
       totalInvestment,
       totalPresentValue,
       totalGainLoss,
-      totalGainLossPercentage
+      totalGainLossPercentage: totalReturnPercentage,
+      sectorSummaries: this.getSectorSummaries()
     };
   }
 
-  // Start automatic updates
-  startAutoUpdates(intervalMs: number = 15000): void {
-    if (this.updateInterval) {
-      clearInterval(this.updateInterval);
-    }
-    
-    this.updateInterval = setInterval(async () => {
-      await this.updateFinancialData();
-    }, intervalMs);
+  // Get sector summaries
+  getSectorSummaries(): SectorSummary[] {
+    const sectorMap = new Map<string, SectorSummary>();
+
+    this.portfolio.forEach(holding => {
+      const existing = sectorMap.get(holding.sector);
+      if (existing) {
+        existing.totalInvestment += holding.investment;
+        existing.totalPresentValue += holding.presentValue;
+        existing.totalGainLoss += holding.gainLoss;
+        existing.stockCount += 1;
+      } else {
+        sectorMap.set(holding.sector, {
+          sector: holding.sector,
+          totalInvestment: holding.investment,
+          totalPresentValue: holding.presentValue,
+          totalGainLoss: holding.gainLoss,
+          stockCount: 1
+        });
+      }
+    });
+
+    return Array.from(sectorMap.values()).sort((a, b) => b.totalInvestment - a.totalInvestment);
   }
 
-  // Stop automatic updates
-  stopAutoUpdates(): void {
-    if (this.updateInterval) {
-      clearInterval(this.updateInterval);
-      this.updateInterval = null;
-    }
-  }
-
-  // Add new holding
-  addHolding(holding: Omit<StockHolding, 'id' | 'portfolioPercentage' | 'cmp' | 'presentValue' | 'gainLoss' | 'peRatio' | 'latestEarnings' | 'lastUpdated'>): void {
-    const newHolding: StockHolding = {
+  // Update portfolio with imported data
+  updatePortfolioWithImportedData(newHoldings: StockHolding[]): void {
+    this.portfolio = newHoldings.map(holding => ({
       ...holding,
-      id: Date.now().toString(),
-      portfolioPercentage: 0,
       cmp: 0,
       presentValue: 0,
       gainLoss: 0,
       peRatio: 0,
-      latestEarnings: 0,
-      lastUpdated: new Date()
-    };
+      latestEarnings: 0
+    }));
     
-    this.holdings.push(newHolding);
-    this.calculatePortfolioPercentages();
+    // Trigger immediate data fetch for the new portfolio
+    this.updateFinancialData();
   }
 
-  // Remove holding
-  removeHolding(id: string): void {
-    this.holdings = this.holdings.filter(holding => holding.id !== id);
-    this.calculatePortfolioPercentages();
+  // Reset to sample data
+  resetToSampleData(): void {
+    this.portfolio = [...SAMPLE_PORTFOLIO];
+    this.lastUpdateTime = null;
+    
+    // Trigger immediate data fetch for sample portfolio
+    this.updateFinancialData();
   }
 
-  // Update holding
-  updateHolding(id: string, updates: Partial<StockHolding>): void {
-    const index = this.holdings.findIndex(holding => holding.id === id);
-    if (index !== -1) {
-      this.holdings[index] = { ...this.holdings[index], ...updates };
-      this.calculatePortfolioPercentages();
+  // Manual data fetch - user controlled
+  async fetchDataNow(): Promise<void> {
+    if (this.updateInProgress) {
+      console.log('Data fetch already in progress...');
+      return;
+    }
+
+    this.updateInProgress = true;
+    console.log('Starting manual data fetch...');
+    
+    try {
+      await this.updateFinancialData();
+      console.log('Manual data fetch completed successfully!');
+    } catch (error) {
+      console.error('Manual data fetch failed:', error);
+    } finally {
+      this.updateInProgress = false;
     }
   }
 
-  // Get current holdings count
-  getHoldingsCount(): number {
-    return this.holdings.length;
+  // Update financial data for all holdings
+  private async updateFinancialData(): Promise<void> {
+    if (this.updateInProgress) {
+      console.log('Update already in progress, skipping...');
+      return;
+    }
+
+    this.updateInProgress = true;
+    const startTime = Date.now();
+
+    try {
+      // Get all unique symbols
+      const symbols = this.portfolio.map(holding => holding.particulars);
+      
+      // Fetch data in batches for efficiency
+      const financialDataMap = await fetchBatchFinancialData(symbols);
+      
+      // Update portfolio with new data
+      this.portfolio = this.portfolio.map(holding => {
+        const financialData = financialDataMap.get(holding.particulars);
+        
+        if (financialData) {
+          const presentValue = financialData.cmp * holding.quantity;
+          const gainLoss = presentValue - holding.investment;
+          
+          return {
+            ...holding,
+            cmp: financialData.cmp,
+            presentValue,
+            gainLoss,
+            peRatio: financialData.peRatio,
+            latestEarnings: financialData.latestEarnings
+          };
+        }
+        
+        return holding;
+      });
+
+      this.lastUpdateTime = new Date();
+      
+      const duration = Date.now() - startTime;
+      console.log(`Financial data update completed in ${duration}ms`);
+      console.log(`Updated: ${financialDataMap.size}, Errors: 0, Total: ${symbols.length}`);
+      
+    } catch (error) {
+      console.error('Error updating financial data:', error);
+      
+      // Fallback to individual API calls if batch fails
+      console.log('Falling back to individual API calls...');
+      await this.updateIndividualHoldings();
+      
+    } finally {
+      this.updateInProgress = false;
+    }
   }
 
-  // Check if portfolio has data
-  hasData(): boolean {
-    return this.holdings.length > 0;
+  // Fallback: Update holdings individually
+  private async updateIndividualHoldings(): Promise<void> {
+    const updatePromises = this.portfolio.map(async (holding) => {
+      try {
+        const data = await rateLimitedFetchFinancialData(() => 
+          fetchBatchFinancialData([holding.particulars])
+        );
+        if (data && data.has(holding.particulars)) {
+          const financialData = data.get(holding.particulars)!;
+          const presentValue = financialData.cmp * holding.quantity;
+          const gainLoss = presentValue - holding.investment;
+          
+          Object.assign(holding, {
+            cmp: financialData.cmp,
+            presentValue,
+            gainLoss,
+            peRatio: financialData.peRatio,
+            latestEarnings: financialData.latestEarnings
+          });
+        }
+      } catch (error) {
+        console.error(`Failed to update ${holding.particulars}:`, error);
+      }
+    });
+
+    await Promise.allSettled(updatePromises);
+    this.lastUpdateTime = new Date();
+  }
+
+  // Get last update time
+  getLastUpdateTime(): Date | null {
+    return this.lastUpdateTime;
+  }
+
+  // Check if update is in progress
+  isUpdateInProgress(): boolean {
+    return this.updateInProgress;
+  }
+
+  // Force update (for manual refresh)
+  async forceUpdate(): Promise<void> {
+    console.log('Force update requested...');
+    await this.fetchDataNow();
+  }
+
+  // Get current time for display
+  getCurrentTime(): Date {
+    return new Date();
+  }
+
+  // Check if market is open (Indian market hours: 9:15 AM - 3:30 PM IST, Mon-Fri)
+  isMarketOpen(): boolean {
+    const now = new Date();
+    const istTime = new Date(now.getTime() + (5.5 * 60 * 60 * 1000)); // Convert to IST
+    
+    // Check if it's a weekday (Monday = 1, Sunday = 0)
+    if (istTime.getDay() === 0 || istTime.getDay() === 6) {
+      return false;
+    }
+    
+    const currentHour = istTime.getHours();
+    const currentMinute = istTime.getMinutes();
+    const currentTime = currentHour * 60 + currentMinute;
+    
+    const marketStart = 9 * 60 + 15; // 9:15 AM
+    const marketEnd = 15 * 60 + 30;  // 3:30 PM
+    
+    return currentTime >= marketStart && currentTime <= marketEnd;
   }
 }
 
