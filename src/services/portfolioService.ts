@@ -215,8 +215,6 @@ class PortfolioService {
       console.log('Data fetch already in progress...');
       return;
     }
-
-    this.updateInProgress = true;
     console.log('Starting manual data fetch...');
     
     try {
@@ -224,8 +222,6 @@ class PortfolioService {
       console.log('Manual data fetch completed successfully!');
     } catch (error) {
       console.error('Manual data fetch failed:', error);
-    } finally {
-      this.updateInProgress = false;
     }
   }
 

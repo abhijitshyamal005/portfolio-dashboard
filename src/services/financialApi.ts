@@ -297,7 +297,7 @@ export const fetchFinancialData = async (symbol: string): Promise<ApiResponse<Fi
     // Use the combined server-side API for better performance
     const result = await fetchFromServer(symbol);
     
-    if (result.success && result.data) {
+    if (result.success && result.data && result.data.cmp && result.data.cmp > 0) {
       // Cache the combined result
       setCachedData(symbol, result.data);
       
@@ -309,7 +309,7 @@ export const fetchFinancialData = async (symbol: string): Promise<ApiResponse<Fi
     } else {
       // Server API failed, provide mock data as fallback
       if (config.ENABLE_API_LOGGING) {
-        console.log(`Server API failed for ${symbol}, using mock data fallback`);
+        console.log(`Server API failed or returned invalid CMP for ${symbol}, using mock data fallback`);
       }
       
       const mockData = getMockFinancialData(symbol);

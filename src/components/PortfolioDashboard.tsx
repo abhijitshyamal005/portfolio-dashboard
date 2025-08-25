@@ -5,15 +5,16 @@ import { PortfolioTable } from './PortfolioTable';
 import { PortfolioOverview } from './PortfolioOverview';
 import { SectorSummaryComponent } from './SectorSummary';
 import { portfolioService } from '@/services/portfolioService';
-import { StockHolding, PortfolioData } from '@/types/portfolio';
+import { PortfolioData } from '@/types/portfolio';
+import { getConfig } from '@/config/env';
 
 export const PortfolioDashboard: React.FC = () => {
   const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [showFileUpload, setShowFileUpload] = useState(false);
   const [updateStatus, setUpdateStatus] = useState<string>('Initializing...');
+  const config = getConfig();
 
   // Fetch portfolio data
   const fetchPortfolioData = useCallback(async () => {
@@ -49,22 +50,7 @@ export const PortfolioDashboard: React.FC = () => {
     }
   }, [fetchPortfolioData]);
 
-  // Handle imported portfolio data
-  const handleImportedPortfolio = useCallback((holdings: StockHolding[]) => {
-    try {
-      setUpdateStatus('Importing portfolio data...');
-      portfolioService.updatePortfolioWithImportedData(holdings);
-      fetchPortfolioData();
-      setShowFileUpload(false);
-      setError(null);
-      setUpdateStatus('Portfolio imported successfully');
-      setTimeout(() => setUpdateStatus(''), 3000);
-    } catch (err) {
-      setError('Failed to import portfolio data');
-      setUpdateStatus('Import failed');
-      console.error('Error importing portfolio:', err);
-    }
-  }, [fetchPortfolioData]);
+  // (Import functionality removed for now)
 
   // Reset to sample data
   const handleResetToSample = useCallback(() => {
@@ -86,6 +72,34 @@ export const PortfolioDashboard: React.FC = () => {
   useEffect(() => {
     fetchPortfolioData();
   }, [fetchPortfolioData]);
+
+  // Fetch live CMP data on initial load
+  useEffect(() => {
+    updateFinancialData();
+  }, [updateFinancialData]);
+
+  // Auto-refresh during market hours
+  useEffect(() => {
+    const intervalMs = config.UPDATE_INTERVAL_MS;
+    const timer = setInterval(async () => {
+      try {
+        if (portfolioService.isMarketOpen()) {
+          setUpdateStatus('Auto-refresh: fetching latest market data...');
+          await portfolioService.fetchDataNow();
+          await fetchPortfolioData();
+          setUpdateStatus('Auto-refresh completed');
+          setLastUpdated(portfolioService.getLastUpdateTime() || new Date());
+        } else {
+          setUpdateStatus('Market closed. Auto-refresh paused.');
+        }
+      } catch (err) {
+        console.error('Auto-refresh failed:', err);
+        setUpdateStatus('Auto-refresh failed');
+      }
+    }, intervalMs);
+
+    return () => clearInterval(timer);
+  }, [config.UPDATE_INTERVAL_MS, fetchPortfolioData]);
 
   // Manual refresh handler
   const handleRefresh = useCallback(async () => {
