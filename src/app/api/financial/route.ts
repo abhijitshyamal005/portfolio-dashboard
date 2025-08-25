@@ -3,9 +3,7 @@ import yahooFinance from "yahoo-finance2";
 import axios from "axios";
 
 // Server-side API route to fetch financial data
-// This bypasses CORS issues by making requests from the server
 
-// Ensure Node.js runtime (required for yahoo-finance2 and axios) and disable caching
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -46,7 +44,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const symbol = searchParams.get("symbol");
-    const type = searchParams.get("type"); // 'yahoo' or 'google'
+    const type = searchParams.get("type"); 
 
     if (!symbol) {
       return NextResponse.json(
@@ -55,7 +53,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Normalize and prepare variants for different data sources
     const baseSymbol = symbol.trim().toUpperCase();
     const noSpaceSymbol = baseSymbol.replace(/\s+/g, "");
     const yahooCandidates = [
@@ -71,9 +68,8 @@ export async function GET(request: NextRequest) {
     ];
 
     if (type === "yahoo") {
-      // Fetch Yahoo Finance data
+
       try {
-        // Try multiple symbol variants for robustness
         type QuoteLike = { regularMarketPrice?: number; trailingPE?: number; epsTrailingTwelveMonths?: number };
         let quote: QuoteLike | null = null;
         for (const candidate of yahooCandidates) {
@@ -81,7 +77,6 @@ export async function GET(request: NextRequest) {
             quote = await yahooFinance.quote(candidate);
             if (quote && quote.regularMarketPrice) break;
           } catch {
-            // try next candidate
           }
         }
 
@@ -96,7 +91,7 @@ export async function GET(request: NextRequest) {
             },
           });
         } else {
-          // No valid quote found after trying candidates
+          console.warn(`No valid data from Yahoo Finance for ${symbol}`);
         }
 
         // As a last resort, provide mock CMP so UI is not empty
@@ -111,7 +106,6 @@ export async function GET(request: NextRequest) {
         });
       } catch (error) {
         console.error(`Yahoo Finance API error for ${symbol}:`, error);
-        // Provide mock on failure
         return NextResponse.json({
           success: true,
           data: {
@@ -123,9 +117,7 @@ export async function GET(request: NextRequest) {
         });
       }
     } else if (type === "google") {
-      // Fetch Google Finance data via server-side scraping
       try {
-        // Try multiple URL candidates for symbols with spaces/special cases
         let html: string | null = null;
         for (const candidate of googleCandidates) {
           try {
@@ -148,7 +140,6 @@ export async function GET(request: NextRequest) {
               break;
             }
           } catch {
-            // try next candidate
           }
         }
         if (!html) {

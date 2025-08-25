@@ -61,7 +61,7 @@ export const isMarketOpen = (date: Date = new Date()): boolean => {
   const { START_HOUR, START_MINUTE, END_HOUR, END_MINUTE } = API_CONFIG.MARKET_HOURS;
   
   const day = date.getDay();
-  if (day === 0 || day === 6) return false; // Weekend
+  if (day === 0 || day === 6) return false; 
   
   const hour = date.getHours();
   const minute = date.getMinutes();

@@ -7,8 +7,6 @@ const config = getConfig();
 // Simple cache for API responses
 const apiCache = new Map<string, { data: FinancialData; timestamp: number }>();
 
-// Server-side API implementation to bypass CORS issues
-// This uses Next.js API routes which run on the server
 
 // Helper function to check if cache is valid
 const isCacheValid = (key: string): boolean => {
@@ -34,7 +32,6 @@ const getCachedData = (key: string): FinancialData | null => {
 const setCachedData = (key: string, data: FinancialData): void => {
   if (!config.ENABLE_CACHING) return;
   
-  // Clean up old cache entries if we exceed max size
   if (apiCache.size >= config.MAX_CACHE_SIZE) {
     const oldestKey = apiCache.keys().next().value;
     if (oldestKey !== undefined) {
@@ -236,7 +233,6 @@ const fetchAlternativeFinancialData = async (symbol: string): Promise<ApiRespons
 
 // Helper function to provide reasonable defaults based on sector
 const getSectorDefaults = (symbol: string): { peRatio: number; earnings: number } => {
-  // Map common Indian stocks to reasonable sector defaults
   const sectorMap: Record<string, { peRatio: number; earnings: number }> = {
     // Technology
     'TCS': { peRatio: 25.0, earnings: 95.0 },
@@ -315,7 +311,7 @@ export const fetchFinancialData = async (symbol: string): Promise<ApiResponse<Fi
       const mockData = getMockFinancialData(symbol);
       
       return {
-        success: true, // Still return success with mock data
+        success: true, 
         data: mockData,
         timestamp: new Date()
       };
@@ -328,7 +324,7 @@ export const fetchFinancialData = async (symbol: string): Promise<ApiResponse<Fi
     const mockData = getMockFinancialData(symbol);
     
     return {
-      success: true, // Still return success with mock data
+      success: true, 
       data: mockData,
       timestamp: new Date()
     };

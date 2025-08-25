@@ -1,5 +1,4 @@
 // Environment Configuration for Portfolio Dashboard
-// This file provides default values and can be overridden by .env.local
 
 export const ENV_CONFIG = {
   // API Rate Limiting
@@ -38,7 +37,6 @@ export const ENV_CONFIG = {
 // Helper function to get environment variable with fallback
 export const getEnvVar = (key: string, fallback: string | number | boolean): string | number | boolean => {
   if (typeof window !== 'undefined') {
-    // Client-side: return fallback
     return fallback;
   }
   

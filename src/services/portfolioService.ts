@@ -11,11 +11,11 @@ const SAMPLE_PORTFOLIO: StockHolding[] = [
     investment: 320000,
     portfolioPercentage: 25.0,
     exchange: 'NSE',
-    cmp: 0, // Will be fetched from API
-    presentValue: 0, // Will be calculated
-    gainLoss: 0, // Will be calculated
-    peRatio: 0, // Will be fetched from API
-    latestEarnings: 0, // Will be fetched from API
+    cmp: 0, 
+    presentValue: 0, 
+    gainLoss: 0, 
+    peRatio: 0, 
+    latestEarnings: 0, 
     sector: 'Technology',
     lastUpdated: new Date()
   },
