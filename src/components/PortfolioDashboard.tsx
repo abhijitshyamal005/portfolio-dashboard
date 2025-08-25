@@ -239,9 +239,7 @@ export const PortfolioDashboard: React.FC = () => {
           <p className="text-xs mb-2">
             <strong>Data Sources:</strong> Yahoo Finance (CMP), Google Finance (P/E Ratio & Earnings)
           </p>
-          <p className="text-xs">
-            Note: Using unofficial APIs and web scraping. Data accuracy depends on source availability.
-          </p>
+          
         </div>
       </div>
     </div>
