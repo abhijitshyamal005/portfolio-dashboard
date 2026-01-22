@@ -52,18 +52,19 @@ export async function POST(request: NextRequest) {
     const data = await response.json();
     
     return NextResponse.json(data);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Widget proxy error:', error);
     
-    if (error.name === 'AbortError') {
+    if (error instanceof Error && error.name === 'AbortError') {
       return NextResponse.json(
         { error: 'Request timeout - API took too long to respond' },
         { status: 408 }
       );
     }
     
+    const errorMessage = error instanceof Error ? error.message : 'Failed to fetch data from API';
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch data from API' },
+      { error: errorMessage },
       { status: 500 }
     );
   }

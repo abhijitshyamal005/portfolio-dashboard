@@ -106,7 +106,7 @@ export const FinanceDashboard: React.FC = () => {
     if (typeof document !== 'undefined') {
       document.documentElement.classList.toggle('dark', theme === 'dark');
     }
-  }, []);
+  }, [loadFromStorage, theme]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -199,7 +199,21 @@ export const FinanceDashboard: React.FC = () => {
 
           if (confirm(`This will replace your current dashboard with ${importedData.widgets.length} widget(s). Continue?`)) {
             // Restore widgets with proper Date objects
-            const restoredWidgets = importedData.widgets.map((w: any) => ({
+            interface ImportedWidget {
+              id?: string;
+              name: string;
+              description?: string;
+              type: WidgetConfig['type'];
+              apiUrl: string;
+              refreshInterval: number;
+              fields: WidgetConfig['fields'];
+              displayMode?: WidgetConfig['displayMode'];
+              chartType?: WidgetConfig['chartType'];
+              chartInterval?: WidgetConfig['chartInterval'];
+              createdAt?: string | Date;
+              lastUpdated?: string | Date;
+            }
+            const restoredWidgets = (importedData.widgets as ImportedWidget[]).map((w) => ({
               ...w,
               id: w.id || `widget-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
               createdAt: w.createdAt ? new Date(w.createdAt) : new Date(),

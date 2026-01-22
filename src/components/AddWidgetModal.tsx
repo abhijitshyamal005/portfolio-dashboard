@@ -74,10 +74,11 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
     try {
       const result = await testApiEndpoint(apiUrl);
       setTestResult(result);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to test API';
       setTestResult({
         success: false,
-        error: error.message || 'Failed to test API',
+        error: errorMessage,
       });
     } finally {
       setTesting(false);

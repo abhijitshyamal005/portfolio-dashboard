@@ -17,8 +17,16 @@ interface CandlestickChartProps {
 }
 
 // Custom shape for candlestick
-const CandlestickShape = (props: any) => {
-  const { x, y, width, payload } = props;
+interface CandlestickShapeProps {
+  x?: number;
+  y?: number;
+  width?: number;
+  payload?: CandlestickData;
+}
+
+const CandlestickShape = (props: CandlestickShapeProps) => {
+  const { x = 0, y = 0, width = 0, payload } = props;
+  if (!payload) return null;
   const { open, high, low, close } = payload;
   const isUp = close >= open;
   const bodyHeight = Math.abs(close - open);
@@ -86,9 +94,10 @@ export const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, height
             border: '1px solid #374151',
             borderRadius: '8px'
           }}
-          formatter={(value: any, name: string) => {
+          formatter={(value: number | string, name: string) => {
             if (name === 'open' || name === 'high' || name === 'low' || name === 'close') {
-              return [value.toFixed(2), name.toUpperCase()];
+              const numValue = typeof value === 'number' ? value : parseFloat(String(value));
+              return [numValue.toFixed(2), name.toUpperCase()];
             }
             return [value, name];
           }}
