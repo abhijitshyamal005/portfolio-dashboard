@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Portfolio Dashboard - Real-time Stock Tracking",
-  description: "Dynamic portfolio dashboard with real-time stock data, sector analysis, and performance tracking",
+  title: "Finance Dashboard - Customizable Real-time Finance Monitoring",
+  description: "Build your own customizable finance dashboard by connecting to financial APIs and displaying real-time data through widgets",
 };
 
 export default function RootLayout({
@@ -23,13 +23,41 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  const stored = localStorage.getItem('finance-dashboard-state');
+                  if (stored) {
+                    const parsed = JSON.parse(stored);
+                    const theme = parsed?.state?.theme;
+                    if (theme === 'dark') {
+                      document.documentElement.classList.add('dark');
+                    } else if (theme === 'light') {
+                      document.documentElement.classList.remove('dark');
+                    } else {
+                      // Default to dark theme if not set
+                      document.documentElement.classList.add('dark');
+                    }
+                  } else {
+                    // Default to dark theme
+                    document.documentElement.classList.add('dark');
+                  }
+                } catch (e) {
+                  // Default to dark theme on error
+                  document.documentElement.classList.add('dark');
+                }
+              })();
+            `,
+          }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div className="w-full bg-yellow-100 dark:bg-yellow-900 text-yellow-900 dark:text-yellow-200 text-center py-2 px-4 text-xs font-semibold border-b border-yellow-300 dark:border-yellow-800">
-          <span className="font-bold">Disclaimer:</span> This dashboard uses unofficial APIs and web scraping for financial data. Data may be delayed or inaccurate. Do not use for trading decisions. Always verify with official sources.
-        </div>
         {children}
       </body>
     </html>

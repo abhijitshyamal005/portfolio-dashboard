@@ -1,5 +1,5 @@
-import { PortfolioDashboard } from '@/components/PortfolioDashboard';
+import { FinanceDashboard } from '@/components/FinanceDashboard';
 
 export default function Home() {
-  return <PortfolioDashboard />;
+  return <FinanceDashboard />;
 }

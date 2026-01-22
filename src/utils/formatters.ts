@@ -38,3 +38,41 @@ export const formatCompactNumber = (value: number): string => {
   }
   return value.toString();
 };
+
+import type { WidgetField, FieldFormat } from '@/types/widget';
+
+export const formatFieldValue = (value: any, field: WidgetField): string => {
+  if (value === null || value === undefined) return 'N/A';
+  
+  const format = field.format || 'none';
+  
+  // Try to parse as number if it's a string
+  let numValue: number | null = null;
+  if (typeof value === 'number') {
+    numValue = value;
+  } else if (typeof value === 'string') {
+    const parsed = parseFloat(value);
+    if (!isNaN(parsed)) {
+      numValue = parsed;
+    }
+  }
+  
+  // Apply formatting based on field format
+  if (numValue !== null) {
+    switch (format) {
+      case 'currency':
+        return formatCurrency(numValue);
+      case 'percentage':
+        return formatPercentage(numValue);
+      case 'number':
+        return formatNumber(numValue);
+      case 'compact':
+        return formatCompactNumber(numValue);
+      case 'none':
+      default:
+        return String(value);
+    }
+  }
+  
+  return String(value);
+};
