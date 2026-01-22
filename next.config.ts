@@ -1,7 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Vercel handles deployment automatically, no need for standalone output
+  
+  // Optimize images if you add them later
+  images: {
+    remotePatterns: [],
+  },
 };
 
 export default nextConfig;
